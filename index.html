@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Ventas y Promociones</title>
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Librerías Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">📈</div>
+                <h1>Promo<span class="highlight">Analytics</span></h1>
+            </div>
+            <p class="subtitle">Descubre el impacto real de tus promociones en las ventas</p>
+        </header>
+
+        <!-- Sección de subida de archivos -->
+        <section id="upload-section" class="glass-panel fade-in">
+            <div class="upload-grid">
+                <!-- Dropzone Ventas -->
+                <div class="dropzone" id="dropzone-ventas">
+                    <input type="file" id="file-ventas" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
+                    <div class="icon">📊</div>
+                    <h3>Base de Ventas</h3>
+                    <p>Arrastra tu Excel/CSV aquí o <span class="browse">explora</span></p>
+                    <div class="file-status" id="status-ventas">Esperando archivo...</div>
+                </div>
+
+                <!-- Dropzone Promos -->
+                <div class="dropzone" id="dropzone-promos">
+                    <input type="file" id="file-promos" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
+                    <div class="icon">🏷️</div>
+                    <h3>Base de Promociones</h3>
+                    <p>Arrastra tu Excel/CSV aquí o <span class="browse">explora</span></p>
+                    <div class="file-status" id="status-promos">Esperando archivo...</div>
+                </div>
+            </div>
+            
+            <div class="action-bar">
+                <button id="btn-analyze" class="btn-primary" disabled>Generar Análisis 🚀</button>
+            </div>
+        </section>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-container hidden">
+            <div class="spinner"></div>
+            <p>Cruzando datos y generando insights...</p>
+        </div>
+
+        <!-- Dashboard de Resultados -->
+        <section id="dashboard-section" class="hidden fade-in">
+            <!-- KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-title">Ventas Totales (Periodo)</div>
+                    <div class="kpi-value" id="kpi-total-sales">$0</div>
+                </div>
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-title">Ventas Bajo Promoción</div>
+                    <div class="kpi-value" id="kpi-promo-sales">$0</div>
+                    <div class="kpi-trend positive" id="kpi-promo-percentage">0% del total</div>
+                </div>
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-title">Incremento Promedio (Lift)</div>
+                    <div class="kpi-value" id="kpi-lift">0%</div>
+                    <div class="kpi-trend positive">vs. días sin promo</div>
+                </div>
+            </div>
+
+            <!-- Gráficas Principales -->
+            <div class="charts-grid">
+                <div class="chart-card glass-panel col-span-2">
+                    <h3>Comportamiento de Ventas en el Tiempo</h3>
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card glass-panel">
+                    <h3>Impacto por Producto</h3>
+                    <div class="chart-container">
+                        <canvas id="productChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-panel">
+                    <h3>Desempeño por Promoción</h3>
+                    <div class="chart-container">
+                        <canvas id="promoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Generados por IA/Matemática -->
+            <div class="insights-panel glass-panel mt-20">
+                <h3>💡 Insights Clave Descubiertos</h3>
+                <ul id="insights-list" class="insights-list">
+                    <!-- Los insights se llenarán dinámicamente -->
+                </ul>
+            </div>
+            
+            <div class="action-bar" style="margin-top: 30px;">
+                <button id="btn-reset" class="btn-secondary">Analizar otros archivos</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
