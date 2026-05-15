@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Ventas y Promociones</title>
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Librerías Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">📈</div>
+                <h1>Promo<span class="highlight">Analytics</span> AI</h1>
+            </div>
+            <p class="subtitle">Descubre el impacto real de tus promociones potenciado por IA local</p>
+            
+            <!-- Estado del LLM Oculto inicialmente -->
+            <div id="llm-status-badge" class="llm-badge hidden">
+                <span class="pulse-dot"></span> Cargando cerebro de IA (Modelo Qwen)...
+            </div>
+        </header>
+
+        <!-- Sección de subida de archivos -->
+        <section id="upload-section" class="glass-panel fade-in">
+            <div class="upload-grid">
+                <!-- Dropzone Ventas -->
+                <div class="dropzone" id="dropzone-ventas">
+                    <input type="file" id="file-ventas" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
+                    <div class="icon">📊</div>
+                    <h3>Base de Ventas</h3>
+                    <p>Arrastra tu Excel/CSV aquí o <span class="browse">explora</span></p>
+                    <div class="file-status" id="status-ventas">Esperando archivo...</div>
+                </div>
+
+                <!-- Dropzone Promos -->
+                <div class="dropzone" id="dropzone-promos">
+                    <input type="file" id="file-promos" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" hidden>
+                    <div class="icon">🏷️</div>
+                    <h3>Base de Promociones</h3>
+                    <p>Arrastra tu Excel/CSV aquí o <span class="browse">explora</span></p>
+                    <div class="file-status" id="status-promos">Esperando archivo...</div>
+                </div>
+            </div>
+            
+            <div class="action-bar">
+                <button id="btn-analyze" class="btn-primary" disabled>Generar Análisis 🚀</button>
+            </div>
+        </section>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-container hidden">
+            <div class="spinner"></div>
+            <p>Cruzando datos y calculando métricas...</p>
+        </div>
+
+        <!-- Dashboard de Resultados -->
+        <section id="dashboard-section" class="hidden fade-in">
+            
+            <!-- Panel de Control Interactivo -->
+            <div class="controls-panel glass-panel">
+                <div class="control-group">
+                    <label>Agrupar datos de tiempo por:</label>
+                    <div class="toggle-buttons">
+                        <button class="control-btn active" data-group="day">Día (Suma)</button>
+                        <button class="control-btn" data-group="month">Mes (Promedio Diario)</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Tipo de Gráfica de Tiempo:</label>
+                    <div class="toggle-buttons">
+                        <button class="control-btn active" data-chart="line">Líneas</button>
+                        <button class="control-btn" data-chart="bar">Barras</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-title">Ventas Totales (Periodo)</div>
+                    <div class="kpi-value" id="kpi-total-sales">$0</div>
+                </div>
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-title">Ventas Bajo Promoción</div>
+                    <div class="kpi-value" id="kpi-promo-sales">$0</div>
+                    <div class="kpi-trend positive" id="kpi-promo-percentage">0% del total</div>
+                </div>
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-title">Incremento Promedio (Lift)</div>
+                    <div class="kpi-value" id="kpi-lift">0%</div>
+                    <div class="kpi-trend positive">vs. días sin promo</div>
+                </div>
+            </div>
+
+            <!-- Gráficas Principales -->
+            <div class="charts-grid">
+                <div class="chart-card glass-panel col-span-2">
+                    <h3 id="timeline-chart-title">Comportamiento de Ventas en el Tiempo</h3>
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card glass-panel">
+                    <h3>Impacto por Producto</h3>
+                    <div class="chart-container">
+                        <canvas id="productChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card glass-panel">
+                    <h3>Desempeño por Promoción</h3>
+                    <div class="chart-container">
+                        <canvas id="promoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis Detallado por SKU -->
+            <div class="sku-analysis-panel glass-panel mt-20">
+                <div class="sku-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin-bottom: 0; display: flex; align-items: center; gap: 8px; color: var(--primary);">🔍 Deep Dive por Producto (SKU)</h3>
+                    <div class="sku-selector" style="display: flex; align-items: center; gap: 10px;">
+                        <label for="sku-select" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Seleccionar SKU:</label>
+                        <select id="sku-select" class="control-select" style="padding: 8px 16px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-main); font-family: 'Outfit'; outline: none;">
+                            <option value="">Cargando SKUs...</option>
+                        </select>
+                    </div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Visualiza el cruce de Ingresos, Ganancias y Unidades Vendidas para un producto específico.</p>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="skuDeepDiveChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Insights Generados por IA -->
+            <div class="insights-panel glass-panel mt-20">
+                <h3>🤖 Conclusiones de Inteligencia Artificial (Qwen2)</h3>
+                <div id="ai-typing-container" class="ai-container">
+                    <p class="ai-placeholder">Esperando a la IA...</p>
+                </div>
+            </div>
+            
+            <div class="action-bar" style="margin-top: 30px;">
+                <button id="btn-reset" class="btn-secondary">Analizar otros archivos</button>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
